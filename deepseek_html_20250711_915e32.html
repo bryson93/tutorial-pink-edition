@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive AppState Tutorial | Spam Share</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #ff2b63;
+            --primary-dark: #d91a4d;
+            --primary-light: #ff5c8a;
+            --dark: #1a1a2e;
+            --darker: #121212;
+            --light: #f8f8f8;
+            --text-dark: #333;
+            --text-light: #777;
+            --danger: #f87171;
+            --success: #4ade80;
+            --info: #60a5fa;
+            --warning: #fbbf24;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, var(--darker), var(--dark));
+            color: white;
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .tutorial-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .tutorial-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .tutorial-header h1 {
+            color: var(--primary-light);
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .progress-container {
+            width: 100%;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            margin: 20px 0;
+            height: 10px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--primary-light));
+            width: 0%;
+            transition: width 0.5s ease;
+            border-radius: 10px;
+        }
+
+        .progress-text {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+
+        .step {
+            margin-bottom: 15px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            border-left: 4px solid var(--primary);
+        }
+
+        .step-header {
+            padding: 18px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .step-header:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .step-header h3 {
+            color: white;
+            font-size: 1.1rem;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .step-number {
+            width: 28px;
+            height: 28px;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.9rem;
+            flex-shrink: 0;
+        }
+
+        .step-arrow {
+            transition: transform 0.3s ease;
+        }
+
+        .step.active .step-arrow {
+            transform: rotate(180deg);
+        }
+
+        .step-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease, padding 0.3s ease;
+            padding: 0 20px;
+        }
+
+        .step.active .step-content {
+            max-height: 2000px;
+            padding: 0 20px 20px;
+        }
+
+        .step p, .step li {
+            margin-bottom: 12px;
+            color: var(--text-light);
+        }
+
+        .step ul, .step ol {
+            padding-left: 25px;
+            margin: 15px 0;
+        }
+
+        .step li {
+            margin-bottom: 10px;
+            position: relative;
+            padding-left: 25px;
+        }
+
+        .step li::before {
+            content: '•';
+            color: var(--primary);
+            font-weight: bold;
+            position: absolute;
+            left: 10px;
+        }
+
+        .action-box {
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 8px;
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+        }
+
+        .warning-box {
+            background: rgba(248, 113, 113, 0.1);
+            border-left: 4px solid var(--danger);
+        }
+
+        .tip-box {
+            background: rgba(74, 222, 128, 0.1);
+            border-left: 4px solid var(--success);
+        }
+
+        .info-box {
+            background: rgba(96, 165, 250, 0.1);
+            border-left: 4px solid var(--info);
+        }
+
+        .note-box {
+            background: rgba(251, 191, 36, 0.1);
+            border-left: 4px solid var(--warning);
+        }
+
+        .action-box i {
+            font-size: 1.2rem;
+            margin-top: 2px;
+        }
+
+        .action-box-content {
+            flex: 1;
+        }
+
+        .action-box strong {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .code {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+            color: var(--primary-light);
+        }
+
+        .link {
+            color: var(--primary-light);
+            text-decoration: none;
+            word-break: break-all;
+        }
+
+        .link:hover {
+            text-decoration: underline;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 500;
+            margin: 10px 0;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: none;
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.95rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, var(--primary), var(--primary-dark));
+            color: white;
+            box-shadow: 0 4px 15px rgba(255, 43, 99, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 43, 99, 0.4);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--primary-light);
+            border: 1px solid var(--primary);
+        }
+
+        .btn-outline:hover {
+            background: rgba(255, 43, 99, 0.1);
+        }
+
+        .download-section {
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 8px;
+            border: 1px dashed var(--primary);
+        }
+
+        .download-section h4 {
+            margin-bottom: 10px;
+            color: var(--primary-light);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 15px 0;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .checkbox-container input {
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border: 2px solid var(--primary);
+            border-radius: 4px;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .checkbox-container input:checked {
+            background-color: var(--primary);
+        }
+
+        .checkbox-container input:checked::after {
+            content: '✓';
+            position: absolute;
+            color: white;
+            font-size: 12px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        @media (max-width: 768px) {
+            .tutorial-container {
+                padding: 20px;
+            }
+            
+            .tutorial-header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .step-header {
+                padding: 15px;
+            }
+            
+            .btn {
+                padding: 10px 16px;
+                font-size: 0.9rem;
+            }
+            
+            .btn-group {
+                flex-direction: column;
+                gap: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="tutorial-container">
+        <div class="tutorial-header">
+            <h1>
+                <i class="fas fa-key"></i>
+                Interactive AppState Tutorial
+            </h1>
+            <p>Follow these steps to get your Facebook AppState for Spam Share</p>
+            
+            <div class="progress-container">
+                <div class="progress-bar" id="progress-bar"></div>
+            </div>
+            <div class="progress-text" id="progress-text">0% Complete (0/7 Steps)</div>
+        </div>
+
+        <div class="step" id="step1">
+            <div class="step-header">
+                <h3>
+                    <span class="step-number">1</span>
+                    <i class="fas fa-download"></i>
+                    Download Kiwi Browser
+                </h3>
+                <i class="fas fa-chevron-down step-arrow"></i>
+            </div>
+            <div class="step-content">
+                <p>First, download and install Kiwi Browser for Android:</p>
+                
+                <div class="download-section">
+                    <h4><i class="fas fa-mobile-alt"></i> Android Download</h4>
+                    <div class="btn-group">
+                        <a href="https://kiwibrowser.com/download/" class="btn btn-primary" target="_blank">
+                            <i class="fas fa-download"></i>
+                            Download Kiwi Browser
+                        </a>
+                        <button class="btn btn-outline" onclick="markStepComplete(1)">
+                            <i class="fas fa-check"></i>
+                            I've downloaded it
+                        </button>
+                    </div>
+                    <div class="info-box action-box">
+                        <i class="fas fa-info-circle"></i>
+                        <div class="action-box-content">
+                            <strong>Why Kiwi Browser?</strong>
+                            <p>Kiwi Browser is needed because it's one of the few Android browsers that can install Chrome extensions.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="checkbox-container">
+                    <input type="checkbox" id="step1-checkbox" onchange="updateProgress()">
+                    <label for="step1-checkbox">I've successfully installed Kiwi Browser</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="step" id="step2">
+            <div class="step-header">
+                <h3>
+                    <span class="step-number">2</span>
+                    <i class="fas fa-file-archive"></i>
+                    Download FBState Utility
+                </h3>
+                <i class="fas fa-chevron-down step-arrow"></i>
+            </div>
+            <div class="step-content">
+                <p>Get the latest version of C3C FBState utility:</p>
+                
+                <div class="download-section">
+                    <h4><i class="fas fa-tools"></i> Utility Download</h4>
+                    <div class="btn-group">
+                        <a href="https://github.com/c3cbot/c3c-fbstate/archive/refs/tags/1.5.zip" class="btn btn-primary" target="_blank">
+                            <i class="fas fa-file-download"></i>
+                            Download FBState Utility
+                        </a>
+                        <button class="btn btn-outline" onclick="markStepComplete(2)">
+                            <i class="fas fa-check"></i>
+                            I've downloaded it
+                        </button>
+                    </div>
+                </div>
+
+                <div class="warning-box action-box">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <div class="action-box-content">
+                        <strong>Important:</strong>
+                        <p>Make sure you download the <span class="code">c3c-fbstate-utility-1.5.zip</span> file specifically.</p>
+                    </div>
+                </div>
+                
+                <div class="checkbox-container">
+                    <input type="checkbox" id="step2-checkbox" onchange="updateProgress()">
+                    <label for="step2-checkbox">I've downloaded the correct FBState utility</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="step" id="step3">
+            <div class="step-header">
+                <h3>
+                    <span class="step-number">3</span>
+                    <i class="fas fa-cog"></i>
+                    Open Extensions Menu
+                </h3>
+                <i class="fas fa-chevron-down step-arrow"></i>
+            </div>
+            <div class="step-content">
+                <ol>
+                    <li>Install and open Kiwi Browser</li>
+                    <li>Tap the 3 dots (<i class="fas fa-ellipsis-v"></i>) at the top right</li>
+                    <li>Select "Extensions" from the menu</li>
+                </ol>
+                
+                <div class="tip-box action-box">
+                    <i class="fas fa-lightbulb"></i>
+                    <div class="action-box-content">
+                        <strong>Quick Tip:</strong>
+                        <p>The extensions menu is where you'll manage all your browser add-ons.</p>
+                    </div>
+                </div>
+                
+                <div class="checkbox-container">
+                    <input type="checkbox" id="step3-checkbox" onchange="updateProgress()">
+                    <label for="step3-checkbox">I've accessed the extensions menu</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="step" id="step4">
+            <div class="step-header">
+                <h3>
+                    <span class="step-number">4</span>
+                    <i class="fas fa-user-shield"></i>
+                    Enable Developer Mode
+                </h3>
+                <i class="fas fa-chevron-down step-arrow"></i>
+            </div>
+            <div class="step-content">
+                <ol>
+                    <li>Find the "Developer mode" switch</li>
+                    <li>Slide it to the right to ON position</li>
+                </ol>
+                
+                <div class="warning-box action-box">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <div class="action-box-content">
+                        <strong>Critical Step:</strong>
+                        <p>The extension <strong>won't work</strong> if Developer mode is not enabled.</p>
+                    </div>
+                </div>
+                
+                <div class="checkbox-container">
+                    <input type="checkbox" id="step4-checkbox" onchange="updateProgress()">
+                    <label for="step4-checkbox">I've enabled Developer mode</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="step" id="step5">
+            <div class="step-header">
+                <h3>
+                    <span class="step-number">5</span>
+                    <i class="fas fa-box-open"></i>
+                    Install the Extension
+                </h3>
+                <i class="fas fa-chevron-down step-arrow"></i>
+            </div>
+            <div class="step-content">
+                <ol>
+                    <li>Tap the + (from .zip/.crx/.user.js) button</li>
+                    <li>Navigate to where <span class="code">c3c-fbstate-utility-1.5.zip</span> is saved</li>
+                    <li>Find the ZIP file and tap to install</li>
+                </ol>
+                
+                <div class="tip-box action-box">
+                    <i class="fas fa-lightbulb"></i>
+                    <div class="action-box-content">
+                        <strong>Troubleshooting:</strong>
+                        <p>If the extension isn't visible after installation, try restarting Kiwi Browser.</p>
+                    </div>
+                </div>
+                
+                <div class="checkbox-container">
+                    <input type="checkbox" id="step5-checkbox" onchange="updateProgress()">
+                    <label for="step5-checkbox">I've successfully installed the extension</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="step" id="step6">
+            <div class="step-header">
+                <h3>
+                    <span class="step-number">6</span>
+                    <i class="fas fa-copy"></i>
+                    Use FBState Utility
+                </h3>
+                <i class="fas fa-chevron-down step-arrow"></i>
+            </div>
+            <div class="step-content">
+                <ol>
+                    <li>Login to Facebook.com in Kiwi Browser</li>
+                    <div class="warning-box action-box">
+                        <i class="fas fa-shield-alt"></i>
+                        <div class="action-box-content">
+                            <strong>Security Warning:</strong>
+                            <p>Use a <strong>dummy account</strong> to protect your main Facebook account.</p>
+                        </div>
+                    </div>
+                    <li>Tap the 3 dots (<i class="fas fa-ellipsis-v"></i>) at the top right</li>
+                    <li>Find and tap "Desktop site" to enable desktop mode</li>
+                    <li>Tap the 3 dots again</li>
+                    <li>Scroll down and find "C3C FBState Utility"</li>
+                    <li>Tap it to open the utility</li>
+                    <li>Click "Copy Clipboard" to copy your appstate</li>
+                </ol>
+                
+                <div class="warning-box action-box">
+                    <i class="fas fa-lock"></i>
+                    <div class="action-box-content">
+                        <strong>Security Alert:</strong>
+                        <p>The fbstate is like a key to your Facebook account. <strong>Never share it</strong> with anyone!</p>
+                    </div>
+                </div>
+                
+                <div class="checkbox-container">
+                    <input type="checkbox" id="step6-checkbox" onchange="updateProgress()">
+                    <label for="step6-checkbox">I've successfully copied my AppState</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="step" id="step7">
+            <div class="step-header">
+                <h3>
+                    <span class="step-number">7</span>
+                    <i class="fas fa-rocket"></i>
+                    Set Up Spam Share
+                </h3>
+                <i class="fas fa-chevron-down step-arrow"></i>
+            </div>
+            <div class="step-content">
+                <ol>
+                    <li>Paste your appstate in Spam Share</li>
+                    <li>Enter your Facebook post URL</li>
+                    <li>Enter your share limit (number of shares)</li>
+                    <li>Enter your desired sharing speed</li>
+                    <li>Click "Boost Now" to start</li>
+                </ol>
+                
+                <div class="note-box action-box">
+                    <i class="fas fa-info-circle"></i>
+                    <div class="action-box-content">
+                        <strong>Pro Tip:</strong>
+                        <p>For best results, use moderate sharing speeds to avoid detection by Facebook.</p>
+                    </div>
+                </div>
+                
+                <div class="checkbox-container">
+                    <input type="checkbox" id="step7-checkbox" onchange="updateProgress()">
+                    <label for="step7-checkbox">I've successfully set up Spam Share</label>
+                </div>
+                
+                <div class="btn-group" style="margin-top: 20px;">
+                    <button class="btn btn-primary" onclick="resetTutorial()">
+                        <i class="fas fa-sync-alt"></i>
+                        Reset Tutorial
+                    </button>
+                    <a href="https://ss-pink-edition.onrender.com" class="btn btn-outline">
+                        <i class="fas fa-arrow-left"></i>
+                        Back to Spam Share
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize tutorial
+        document.addEventListener('DOMContentLoaded', function() {
+            // Open first step by default
+            document.getElementById('step1').classList.add('active');
+            
+            // Add click handlers for all step headers
+            document.querySelectorAll('.step-header').forEach(header => {
+                header.addEventListener('click', function() {
+                    const step = this.parentElement;
+                    step.classList.toggle('active');
+                });
+            });
+            
+            // Load saved progress
+            loadProgress();
+        });
+
+        // Progress tracking
+        function updateProgress() {
+            const checkboxes = document.querySelectorAll('.checkbox-container input');
+            let completed = 0;
+            
+            checkboxes.forEach(checkbox => {
+                if (checkbox.checked) completed++;
+            });
+            
+            const progress = Math.round((completed / checkboxes.length) * 100);
+            document.getElementById('progress-bar').style.width = progress + '%';
+            document.getElementById('progress-text').textContent = 
+                progress + '% Complete (' + completed + '/' + checkboxes.length + ' Steps)';
+                
+            // Save progress to localStorage
+            saveProgress();
+        }
+
+        function markStepComplete(stepNumber) {
+            const checkbox = document.getElementById('step' + stepNumber + '-checkbox');
+            checkbox.checked = true;
+            updateProgress();
+            
+            // Open next step if available
+            if (stepNumber < 7) {
+                document.getElementById('step' + stepNumber).classList.remove('active');
+                document.getElementById('step' + (stepNumber + 1)).classList.add('active');
+            }
+        }
+
+        function saveProgress() {
+            const checkboxes = document.querySelectorAll('.checkbox-container input');
+            const progress = [];
+            
+            checkboxes.forEach((checkbox, index) => {
+                progress[index] = checkbox.checked;
+            });
+            
+            localStorage.setItem('appstateTutorialProgress', JSON.stringify(progress));
+        }
+
+        function loadProgress() {
+            const savedProgress = localStorage.getItem('appstateTutorialProgress');
+            if (savedProgress) {
+                const progress = JSON.parse(savedProgress);
+                const checkboxes = document.querySelectorAll('.checkbox-container input');
+                
+                checkboxes.forEach((checkbox, index) => {
+                    if (progress[index]) {
+                        checkbox.checked = true;
+                    }
+                });
+                
+                updateProgress();
+            }
+        }
+
+        function resetTutorial() {
+            if (confirm('Are you sure you want to reset your tutorial progress?')) {
+                const checkboxes = document.querySelectorAll('.checkbox-container input');
+                checkboxes.forEach(checkbox => {
+                    checkbox.checked = false;
+                });
+                
+                updateProgress();
+                localStorage.removeItem('appstateTutorialProgress');
+                
+                // Close all steps except first
+                document.querySelectorAll('.step').forEach((step, index) => {
+                    if (index === 0) {
+                        step.classList.add('active');
+                    } else {
+                        step.classList.remove('active');
+                    }
+                });
+            }
+        }
+    </script>
+</body>
+</html>
